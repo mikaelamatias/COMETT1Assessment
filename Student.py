@@ -12,11 +12,19 @@ class Student(User):
         if course in self.cart:
             print("This class is already in your cart.")
         elif course.isfull():
-            print("Sorry, this class is full!")
+            print("Whoops, this class is full!")
         else:
-            self.cart.append(course)
-            course.addstudent(self)
-            print(course.getcode() + " has been successfully added to your cart.")
+            isconflict = False
+
+            for i in range(0, len(self.getcart())):
+                if (self.getcart()[i].getday() == course.getday().casefold()) and (self.getcart()[i].gettime() == course.gettime()):
+                    print("Whoops, there seems to be a conflict in schedule!")
+                    isconflict = True
+            
+            if not isconflict:
+                self.cart.append(course)
+                course.addstudent(self)
+                print("\n" + course.getcode() + " has been successfully added to your cart.")
 
     def dropcourse(self, course):
         self.cart.remove(course)
@@ -27,7 +35,7 @@ class Student(User):
     def gettotalunits(self):
         count = 0
         for course in self.cart:
-            count += (int)(course.unit)
+            count += (float)(course.unit)
         self.totalunits = count
         
         return self.totalunits
@@ -36,7 +44,10 @@ class Student(User):
         if (len(self.cart) == 0):
             print ("There are no classes in your cart yet.")
         else:
-            for i in range(0, len(self.cart)):
-                print ("\t\t[",(i+1),"] ", self.cart[i])
-            # print("Total Units: " + self.gettotalunits())
+            print("\nMY CART\n")
+            print("\n\tCOURSE CODE\t\t" + "SECTION\t\t" + "NO. OF UNITS\t\t" + "DAYS\t\t" + "TIME\t\t" + "VENUE\t\t" + "ENROLLED\t\t" + "PREREQUISITES")
+            for i in range(0, len(self.getcart())):
+                print(f"[{i+1}]" + str(self.getcart()[i]))
+            
+            print("\nTotal units: " + str(self.gettotalunits()))
 

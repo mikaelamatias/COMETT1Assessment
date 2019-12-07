@@ -1,8 +1,21 @@
+import os
+from subprocess import call
+from time import sleep
 from System import System
 from User import User
 from Admin import Admin
 from Student import Student
 from Course import Course
+
+def clear():
+    _ = call('clear' if os.name == 'posix' else 'cls')
+
+def pause():
+    if os.name == 'nt': 
+        print ("\nPress any key to continue...")
+        _ = os.system("pause")
+    elif os.name == 'posix':
+        _ = os.system('read -sn 1 -p "\nPress any key to continue..."')
 
 def showadminmenu():
     print(" [2] Add Course")
@@ -13,85 +26,114 @@ def showadminmenu():
 def showstudentmenu():
     print(" [2] Add Course")
     print(" [3] Drop Course")
-    print(" [4] View Cart")
+    print(" [4] View My Cart")
     print(" [5] Logout")
     print(" [6] Exit")
 
 ## MAIN ##
 system = System()
-isactive = True
+isrunning = True
 
-while isactive:
+while isrunning:
+    clear()
+    if not system.start():
+        isrunning = False
     
-    system.start()
-    
-    print("HOME")
-    print(" [1] View Course Offerings")
-
-    if isinstance(system.getcurrentuser(), Admin):
-        showadminmenu()
-        admindict = {
-            2 : system.getcurrentuser().addcourse,
-            3 : system.getcurrentuser().removecourse,
-            4 : system.getcurrentuser().logout()
-        }
-
     else:
-        showstudentmenu()
-        studentdict = {
-            2 : system.getcurrentuser().addcourse,
-            3 : system.getcurrentuser().removecourse,
-            4 : system.getcurrentuser().viewcart(),
-            5 : system.getcurrentuser().logout()
-        }
+        isactive = True
+        while isrunning and isactive:
 
-    choice = input("Enter choice: ")
-    if isinstance(system.getcurrentuser(), Admin):
-        while not(choice >= '1' and choice <= '4'):
-            print("ERROR: Invalid input. Please try again.")
-            choice = input("Enter choice: ")
-    else:
-        while not(choice >= '1' and choice <= '5'):
-            print("ERROR: Invalid input. Please try again.")
-            choice = input("Enter choice: ")
-    
-    #TODO: 1
-    if isinstance(system.getcurrentuser(), Student):
-        if choice == '2':
-            if len(system.getcourses()) > 0:
-                system.viewcourses()
-                classnum = input("\nEnter class number: ")
-                while not(classnum >= '1' and classnum <= str(len(system.getcourses()))):
-                        print ("ERROR: Invalid Input. Please try again.")
-                        classnum = input("\nEnter class number: ")
-                studentdict[int(choice)](system.getcourses()[int(classnum)-1])
+            pause()
+            clear()
+
+            print("HOME MENU\n")
+            print(" [1] View Course Offerings")
+
+            if isinstance(system.getcurrentuser(), Admin):
+                showadminmenu()
+                admindict = {
+                    2 : system.getcurrentuser().addcourse,
+                    3 : system.getcurrentuser().removecourse,
+                    4 : system.logout
+                }
+
             else:
-                print("No course offerings to display.")
+                showstudentmenu()
+                studentdict = {
+                    2 : system.getcurrentuser().addcourse,
+                    3 : system.getcurrentuser().dropcourse,
+                    4 : system.getcurrentuser().viewcart,
+                    5 : system.logout
+                }
 
-        elif choice == '3':
-            system.getcurrentuser().viewcart()
+            choice = int(input("\nEnter choice: "))
+            if isinstance(system.getcurrentuser(), Admin):
+                while not(choice >= 1 and choice <= 5):
+                    print("Whoops, invalid input!")
+                    choice = int(input("\nEnter choice: "))
+            else:
+                while not(choice >= 1 and choice <= 6):
+                    print("Whoops, invalid input!")
+                    choice = int(input("\nEnter choice: "))
             
-            if len(system.getcurrentuser().viewcart()) > 0:
-                classnum = input("\nEnter class number: ")
-                while not(classnum >= '1' and classnum <= str(len(system.getcurrentuser().getcart()))):
-                        print ("ERROR: Invalid Input. Please try again.")
-                        classnum = input("\nEnter class number: ")
-                studentdict[int(choice)](system.getcourses()[int(classnum)-1])
-        
-        elif choice != '6':
-            studentdict[int(choice)]()
+            if choice == 1:
+                system.viewcourses()
+               
+                
+            elif isinstance(system.getcurrentuser(), Admin):
+                if choice == 2 or choice == 3:
+                    admindict[choice](system)
+                    
+                elif choice == 4:
+                    admindict[choice]()
+                    isactive = False
+                       
+                else:
+                    isrunning = False
 
-        elif choice == '6':
-            isactive = False
+            elif isinstance(system.getcurrentuser(), Student):
+                if choice == 2:
+                    if len(system.getcourses()) > 0:
+                        system.viewcourses()
+                        classnum = int(input("\nEnter course number to take: "))
+
+                        while not(classnum >= 1 and classnum <= len(system.getcourses())):
+                                print ("Whoops, invalid input!")
+                                classnum = int(input("\nEnter course number to take: "))
+
+                        studentdict[choice](system.getcourses()[classnum-1])
+                    else:
+                        print("\nNo courses to display.")
+                    
+                    
+                elif choice == 3:
+                    system.getcurrentuser().viewcart()
+                    
+                    if len(system.getcurrentuser().getcart()) > 0:
+                        classnum = int(input("\nEnter course number to drop: "))
+                        while not(classnum >= 1 and classnum <= len(system.getcurrentuser().getcart())):
+                                print ("Whoops, invalid input!")
+                                classnum = int(input("\nEnter course number to drop: "))
+                                
+                        studentdict[choice](system.getcurrentuser().getcart()[classnum-1])
+                    else:
+                        print("Whoops, nothing to remove!")
+                    
+
+                elif choice == 4 or choice == 5:
+                    studentdict[choice]()
+                    
+                    if choice == 5:
+                        isactive = False
+
+                else:
+                    isrunning = False
+            
+            
+        clear()    
+            
+      
            
-    elif isinstance(system.getcurrentuser(), Admin):
-        if choice == '2' or choice == '3':
-            admindict[int(choice)](system)
-
-        elif choice == '4':
-            admindict[int(choice)]
-            
-        elif choice == '5':
-            isactive = False
+  
         
 

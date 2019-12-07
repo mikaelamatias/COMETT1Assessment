@@ -7,7 +7,7 @@ class System:
     currentuser = ""
     
     def login(self, idnumber, password, index):
-        if self.users[index].getpassword() == password:
+        if (self.users[index].getIDnumber() == idnumber) and (self.users[index].getpassword() == password):
             self.currentuser = self.users[index]
             return True
         else:
@@ -15,7 +15,6 @@ class System:
 
     def logout(self):
         self.currentuser = ""
-        self.start()
     
     def getusers(self):
         return self.users
@@ -36,61 +35,89 @@ class System:
         self.courses.remove(course)
 
     def viewcourses(self):    
-        if (len(self.courses)) == 0:
-            print ("No classes to display.")
+        if (len(self.getcourses())) == 0:
+            print ("\nNo courses to display.")
         
         else:
-            for i in range(0, len(self.courses)):
-                print ("\t\t[",(i+1),"] ", self.classes[i])
-                
+            print("\nCOURSE OFFERINGS\n")
+            print("\n\tCOURSE CODE\t\t" + "SECTION\t\t" + "NO. OF UNITS\t\t" + "DAYS\t\t" + "TIME\t\t" + "VENUE\t\t" + "ENROLLED\t\t" + "PREREQUISITES")
+            for i in range(0, len(self.getcourses())):
+                print(f" [{i+1}]" + str(self.getcourses()[i])) 
+    
+    def showlogo(self):
+        print("            (_)       ")                        
+        print("  __ _ _ __  _ _ __ ___   ___   ___ _   _ ___") 
+        print(" / _` | '_ \| | '_ ` _ \ / _ \ / __| | | / __|")
+        print("| (_| | | | | | | | | | | (_) |\__ \ |_| \__ \\")
+        print(" \__,_|_| |_|_|_| |_| |_|\___(_)___/\__, |___/")
+        print("                                     __/ |    ")
+        print("                                    |___/     ")
+            
     def start(self):
-        print("[1] Register")
-        print("[2] Login")
+        self.showlogo()
+        print("\n [1] Register")
+        print(" [2] Login")
+        print(" [3] Exit")
+    
+        choice = int(input("\nEnter choice: "))
+
+        while not (choice >= 1 and choice <= 3):
+            print("Whoops, invalid input!")
+            choice = int(input("\nEnter choice: "))
         
-        choice = input("\nEnter choice: ")
 
-        while not (choice == '1' or choice == '2'):
-            print("ERROR: Invalid input. Please try again.")
-            choice = input("\nEnter choice: ")
-        
-        idnumber = input("ID number: ")
-        password = input("Password: ")
+        if choice == 3:
+            return False
 
-        isfound = False
-        index = -1
-        for i in range(0, len(self.users)):
-            if (self.users[i].getIDNumber() == idnumber):
-                isFound = True
-                index = i
+        else: 
+            idnumber = input("\nID number: ")
+            password = input("Password: ")
 
-        if choice == '2':
-            if not isfound:
-                print("Sorry, you are not yet registered.")
-                choice == '1'
-                #TODO: proceed
-            else:
-                while not self.login(idnumber, password, index):
-                    print ("\nYour ID number and password do not match.")
-                    password = input ("Retype password: ") #FIXME: END LOOP
+            isfound = False
+            index = -1
+            for i in range(0, len(self.getusers())):
+                if (self.getusers()[i].getIDnumber() == idnumber):
+                    isfound = True
+                    index = i
             
-                print ("Login successful!")
-        
-        if choice == '1':
-            if isfound:
-                print("You are already registered.")
-            else:
-                print("USER TYPE")
-                print(" [A] Admin")
-                print(" [S] Student")
+            if choice == 2:
+                if not isfound:
+                    print("\nYou are not yet registered. Please provide the following information to register.")
+                    choice = 1
+                else:
+                    while not self.login(idnumber, password, index):
+                        print ("\nWhoops, your ID number and password do not match!")
+                        idnumber = input("\nID number: ")
+                        password = input("Password: ")
+                
+                    print("\nLogin successful!")
+                    
+            if choice == 1:
+                if isfound:
+                    print("\nYou are already registered.")
+                    while not self.login(idnumber, password, index):
+                        print ("\nWhoops, your ID number and password do not match!")
+                        idnumber = input("\nID number: ")
+                        password = input("Password: ")
+                    
+                    print("Login successful!")
+                else:
+                    usertype = input("User type (a/s): ")
+                        
+                    while not(usertype.casefold() == 'a' or usertype.casefold() == 's'):
+                        print ("Whoops, invalid input!")
+                        usertype = input("\nReenter user type: ")
+                        
+                    if (usertype.casefold() == 'a'):
+                        user = Admin(idnumber, password)
+                    elif (usertype.casefold() == 's'):
+                        user = Student(idnumber, password)
+                    
+                    self.adduser(user)
+                    index = len(self.getusers()) - 1
+                    self.login(idnumber, password, index)
             
-                usertype = input("\nEnter user type: ")
-                
-                while not(usertype == 'A' or usertype == 'S'):
-                    print ("ERROR: Invalid Input. Please try again.")
-                    usertype = input("\nEnter user type: ")
-                
-                if (usertype == 'A'):
-                    user = Admin(idnumber, password)
-                elif (usertype == 'S'):
-                    user = Student(idnumber, password)
+            return True
+            
+        
         
